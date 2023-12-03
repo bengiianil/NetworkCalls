@@ -36,7 +36,7 @@ struct ContentView: View {
             }
         }
         .task {
-            user = await networkManager.fetchData()
+            user = try? await networkManager.fetchData()
         }
         .padding()
     }

@@ -7,18 +7,34 @@
 
 import Foundation
 
+enum AppError: Error {
+    case invalidUrl
+    case invalidResponse
+    case invalidData
+}
+
 class NetworkManager {
     
-    func fetchData() async -> GitHubUser? {
-        if let url = URL(string: "https://api.github.com/users/bengiianil") {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                let decodedData = try JSONDecoder().decode(GitHubUser.self, from: data)
-                return decodedData
-            } catch {
-                fatalError()
-            }
+    func fetchData() async throws -> GitHubUser? {
+        guard let url = URL(string: "https://api.github.com/users/bengiianil") else {
+            print("Invalid Url")
+            throw AppError.invalidUrl
         }
-        return nil
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard let response = response as? HTTPURLResponse,
+                  response.statusCode == 200 else {
+                print("Invalid Response")
+                throw AppError.invalidResponse
+            }
+            
+            let decodedData = try JSONDecoder().decode(GitHubUser.self, from: data)
+            return decodedData
+        } catch {
+            print("Invalid Data")
+            throw AppError.invalidData
+        }
     }
 }
